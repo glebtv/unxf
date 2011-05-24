@@ -43,6 +43,13 @@ class UnXF
 
   # Rack entry point
   def call(env) # :nodoc:
+    unxf!(env) || @app.call(env)
+  end
+
+  # returns +nil+ on success and a Rack response triplet on failure
+  # This allows existing applications to use UnXF without putting it
+  # into the middleware stack (to avoid increasing stack depth and GC time)
+  def unxf!(env)
     if xff_str = env.delete(HTTP_X_FORWARDED_FOR)
       xff = xff_str.split(/\s*,\s*/)
       addr = env[REMOTE_ADDR]
@@ -65,7 +72,7 @@ class UnXF
         return on_bad_addr(env, xff_str)
       end
     end
-    @app.call(env)
+    nil
   end
 
   # Our default action on a bad address is to return a 400 Bad Request
