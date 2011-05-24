@@ -68,9 +68,9 @@ class UnXF
     @app.call(env)
   end
 
-  # Our default action on a bad address is to just continue dispatching
-  # the application with the existing environment
-  # You may extend this object to override this error
+  # Our default action on a bad address is to return a 400 Bad Request
+  # error response.  You may extend an instance of UnXF or subclass UnXF
+  # to override this error response.
   def on_bad_addr(env, xff_str)
     # be sure to inspect xff_str to escape it, control characters may be
     # present in the HTTP headers may appear in the header value and
