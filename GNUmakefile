@@ -4,8 +4,3 @@ RSYNC_DEST := bogomips.org:/srv/bogomips/unxf
 rfproject := rainbows
 rfpackage := unxf
 include pkg.mk
-ifneq ($(VERSION),)
-release::
-	$(RAKE) raa_update VERSION=$(VERSION)
-	$(RAKE) publish_news VERSION=$(VERSION)
-endif
