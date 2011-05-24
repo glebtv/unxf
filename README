@@ -1,3 +1,14 @@
 = UnXF - Un-X-Forward* the Rack environment
 
+Removes X-Forwarded-For in the Rack environment and replaces REMOTE_ADDR
+with the correct value (assuming REMOTE_ADDR and the X-Forwarded-For
+chain is provided).
 
+=== Hacking
+
+* git clone git://bogomips.org/unxf.git
+
+=== Contact
+
+* Email our mailing list for all support questions, patches, bug reports, pull
+  requests: mailto:unxf@librelist.org
