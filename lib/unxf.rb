@@ -1,6 +1,8 @@
 # -*- encoding: binary -*-
 require 'rpatricia'
 
+# Rack middleware to remove "HTTP_X_FORWARDED_FOR" in the Rack environment and
+# replace "REMOTE_ADDR" with the value of the original client address.
 class UnXF
   # :stopdoc:
   # reduce garbage overhead by using constant strings
@@ -17,6 +19,19 @@ class UnXF
   # localhost addresses (127.0.0.0/8)
   LOCALHOST = %w(127.0.0.0/8)
 
+  # In your Rack config.ru:
+  #
+  #   use UnXF
+  #
+  # If you do not want to trust any hosts other than "0.6.6.6",
+  # you may only specify one host to trust:
+  #
+  #   use UnXF, "0.6.6.6"
+  #
+  # If you want to trust "0.6.6.6" in addition to the default set of hosts:
+  #
+  #   use UnXF, [ :RFC_1918, :LOCALHOST, "0.6.6.6" ]
+  #
   def initialize(app, trusted = [:RFC_1918, :LOCALHOST])
     @app = app
     @trusted = Patricia.new
@@ -26,7 +41,8 @@ class UnXF
     end
   end
 
-  def call(env)
+  # Rack entry point
+  def call(env) # :nodoc:
     if xff_str = env.delete(HTTP_X_FORWARDED_FOR)
       xff = xff_str.split(/\s*,\s*/)
       addr = env[REMOTE_ADDR]

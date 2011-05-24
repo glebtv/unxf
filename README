@@ -1,14 +1,49 @@
 = UnXF - Un-X-Forward* the Rack environment
 
-Removes X-Forwarded-For in the Rack environment and replaces REMOTE_ADDR
-with the correct value (assuming REMOTE_ADDR and the X-Forwarded-For
-chain is provided).
+Rack middleware to remove "HTTP_X_FORWARDED_FOR" in the Rack environment and
+replace "REMOTE_ADDR" with the value of the original client address.
+
+This uses the "rpatricia" RubyGem to filter out spoofed requests from
+clients outside your LAN.  The list of trusted address defaults to
+private LAN addresses defined RFC 1918 and those belonging to localhost.
+
+This will also read "HTTP_X_FORWARDED_PROTO" and set "rack.url_scheme"
+to "https" if the "X-Forwarded-Proto" header is set properly and sent
+from a trusted address chain.
+
+== Install
+
+If you use RubyGems:
+
+    gem install unxf
+
+You will need a C compiler and Ruby development headers to install the
+"rpatricia" RubyGem if it is not already installed.
 
 === Hacking
 
+You can get the latest source via git from the following locations:
+
 * git clone git://bogomips.org/unxf.git
+* git clone git://repo.or.cz/unxf.git (mirror)
 
-=== Contact
+You may browse the code from the web and download the latest snapshot
+tarballs here:
 
-* Email our mailing list for all support questions, patches, bug reports, pull
-  requests: mailto:unxf@librelist.org
+* http://bogomips.org/unxf.git (cgit)
+* http://repo.or.cz/w/unxf.git (gitweb)
+
+Inline patches (from "git format-patch") to the
+{mailing list}[mailto:unxf@librelist.org] are
+preferred because they allow code review and comments in the reply to
+the patch.
+
+We will adhere to mostly the same conventions for patch submissions as
+git itself.  See the Documentation/SubmittingPatches document
+distributed with git on on patch submission guidelines to follow.  Just
+don't email the git mailing list or maintainer with unxf patches.
+
+== Contact
+
+All feedback (bug reports, user/development discussion, patches, pull
+requests) go to the mailing list: mailto:unxf@librelist.org
