@@ -82,4 +82,28 @@ class TestUnXF < Test::Unit::TestCase
     assert_equal r.status.to_i, 400
     assert_match /\\x00\.6\.6\.6,8\.8\.8\.8/, @io.string
   end
+
+  def test_more_trust
+    req = Rack::MockRequest.new(UnXF.new(@app, [ :LOCALHOST, "0.6.6.6" ]))
+    env = {
+      "HTTP_X_FORWARDED_FOR" => "1.6.6.6,0.6.6.6",
+      "REMOTE_ADDR" => "127.0.0.1",
+    }
+    r = req.get("http://example.com/", @req.merge(env))
+    assert_equal r.status.to_i, 200
+    assert_equal "1.6.6.6", @env["REMOTE_ADDR"]
+    assert ! @env.key?("HTTP_X_FORWARDED_FOR")
+  end
+
+  def test_one_trusted
+    req = Rack::MockRequest.new(UnXF.new(@app, "0.6.6.6"))
+    env = {
+      "HTTP_X_FORWARDED_FOR" => "1.6.6.6",
+      "REMOTE_ADDR" => "0.6.6.6",
+    }
+    r = req.get("http://example.com/", @req.merge(env))
+    assert_equal r.status.to_i, 200
+    assert_equal "1.6.6.6", @env["REMOTE_ADDR"]
+    assert ! @env.key?("HTTP_X_FORWARDED_FOR")
+  end
 end
