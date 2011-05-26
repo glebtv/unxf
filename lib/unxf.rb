@@ -58,33 +58,31 @@ class UnXF
           addr = tmp
         end
       rescue ArgumentError
-        return on_bad_addr(env, xff_str)
+        return on_broken_addr(env, xff_str)
       end
-
-      env[REMOTE_ADDR] = addr
 
       # it's stupid to have https at any point other than the first
       # proxy in the chain, so we don't support that
       if xff.empty?
+        env[REMOTE_ADDR] = addr
         env.delete(HTTP_X_FORWARDED_PROTO) =~ /\Ahttps\b/ and
                                              env[RACK_URL_SCHEME] = HTTPS
       else
-        return on_bad_addr(env, xff_str)
+        return on_untrusted_addr(env, xff_str)
       end
     end
     nil
   end
 
-  # Our default action on a bad address is to return a 400 Bad Request
-  # error response.  You may extend an instance of UnXF or subclass UnXF
-  # to override this error response.
-  def on_bad_addr(env, xff_str)
-    # be sure to inspect xff_str to escape it, control characters may be
-    # present in the HTTP headers may appear in the header value and
-    # used to exploit anyone who opens the log file.  nginx doesn't
-    # filter/reject control characters, nor does Mongrel...
-    env["rack.logger"].error(
-                    "bad XFF #{xff_str.inspect} from #{env[REMOTE_ADDR]}")
-    [ 400, [ %w(Content-Length 0), %w(Content-Type text/html) ], [] ]
+  # Our default action on a broken address is to just fall back to calling
+  # the app without modifying the env
+  def on_broken_addr(env, xff_str)
+    @app.call(env)
+  end
+
+  # Our default action on an untrusted address is to just fall back to calling
+  # the app without modifying the env
+  def on_untrusted_addr(env, xff_str)
+    @app.call(env)
   end
 end

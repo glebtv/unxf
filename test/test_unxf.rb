@@ -46,7 +46,8 @@ class TestUnXF < Test::Unit::TestCase
       "REMOTE_ADDR" => "227.0.0.1",
     }
     r = req.get("http://example.com/", @req.merge(env))
-    assert_equal r.status.to_i, 400
+    assert_equal "227.0.0.1", @env["REMOTE_ADDR"]
+    assert_equal r.status.to_i, 200
   end
 
   def test_trusted_chain
@@ -68,8 +69,8 @@ class TestUnXF < Test::Unit::TestCase
       "REMOTE_ADDR" => "127.0.0.1",
     }
     r = req.get("http://example.com/", @req.merge(env))
-    assert_equal r.status.to_i, 400
-    assert_match /0\.6\.6\.6,8\.8\.8\.8/, @io.string
+    assert_equal "127.0.0.1", @env["REMOTE_ADDR"]
+    assert_equal r.status.to_i, 200
   end
 
   def test_spoofed_null_safe
@@ -79,8 +80,8 @@ class TestUnXF < Test::Unit::TestCase
       "REMOTE_ADDR" => "127.0.0.1",
     }
     r = req.get("http://example.com/", @req.merge(env))
-    assert_equal r.status.to_i, 400
-    assert_match /\\x00\.6\.6\.6,8\.8\.8\.8/, @io.string
+    assert_equal "127.0.0.1", @env["REMOTE_ADDR"]
+    assert_equal r.status.to_i, 200
   end
 
   def test_more_trust
