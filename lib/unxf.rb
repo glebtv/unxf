@@ -16,8 +16,11 @@ class UnXF
   # local LAN addresses described in RFC 1918
   RFC_1918 = %w(10.0.0.0/8 172.16.0.0/12 192.168.0.0/16)
 
-  # localhost addresses (127.0.0.0/8)
+  # IPv4 localhost addresses (127.0.0.0/8)
   LOCALHOST = %w(127.0.0.0/8)
+
+  # IPv6 localhost address (::1/128)
+  LOCALHOST6 = %w(::1/128)
 
   # In your Rack config.ru:
   #
@@ -32,12 +35,15 @@ class UnXF
   #
   #   use UnXF, [ :RFC_1918, :LOCALHOST, "0.6.6.6" ]
   #
-  def initialize(app, trusted = [:RFC_1918, :LOCALHOST])
+  def initialize(app, trusted = [:RFC_1918, :LOCALHOST, :LOCALHOST6])
     @app = app
     @trusted = Patricia.new
+    @trusted6 = Patricia.new(:AF_INET6)
     Array(trusted).each do |mask|
       mask = UnXF.const_get(mask) if Symbol === mask
-      Array(mask).each { |m| @trusted.add(m, true) }
+      Array(mask).each do |prefix|
+        (/:/ =~ prefix ? @trusted6 : @trusted).add(prefix, true)
+      end
     end
   end
 
@@ -54,7 +60,8 @@ class UnXF
       xff = xff_str.split(/\s*,\s*/)
       addr = env[REMOTE_ADDR]
       begin
-        while @trusted.include?(addr) && tmp = xff.pop
+        while (/:/ =~ addr ? @trusted6 : @trusted).include?(addr) &&
+              tmp = xff.pop
           addr = tmp
         end
       rescue ArgumentError
