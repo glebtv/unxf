@@ -10,6 +10,8 @@ class UnXF
   HTTP_X_FORWARDED_FOR = "HTTP_X_FORWARDED_FOR"
   HTTP_X_FORWARDED_PROTO = "HTTP_X_FORWARDED_PROTO"
   RACK_URL_SCHEME = "rack.url_scheme".freeze
+  UNXF_FOR = "unxf.for".freeze
+  UNXF_PROTO = "unxf.proto".freeze
   HTTPS = "https"
   # :startdoc:
 
@@ -57,6 +59,7 @@ class UnXF
   # into the middleware stack (to avoid increasing stack depth and GC time)
   def unxf!(env)
     if xff_str = env.delete(HTTP_X_FORWARDED_FOR)
+      env[UNXF_FOR] = xff_str
       xff = xff_str.split(/\s*,\s*/)
       addr = env[REMOTE_ADDR]
       begin
@@ -72,8 +75,10 @@ class UnXF
       # proxy in the chain, so we don't support that
       if xff.empty?
         env[REMOTE_ADDR] = addr
-        env.delete(HTTP_X_FORWARDED_PROTO) =~ /\Ahttps\b/ and
-                                             env[RACK_URL_SCHEME] = HTTPS
+        if xfp = env.delete(HTTP_X_FORWARDED_PROTO)
+          env[UNXF_PROTO] = xfp
+          /\Ahttps\b/ =~ xfp and env[RACK_URL_SCHEME] = HTTPS
+        end
       else
         return on_untrusted_addr(env, xff_str)
       end
