@@ -57,6 +57,19 @@ class TestUnXF < Test::Unit::TestCase
     assert_equal "2600:3c01::f03c:91ff:fe96:f5d6", @env["unxf.for"]
   end
 
+  def test_ipv6_mixed_localhost
+    req = Rack::MockRequest.new(UnXF.new(@app))
+    env = {
+      "HTTP_X_FORWARDED_FOR" => "2600:3c01::f03c:91ff:fe96:f5d6,192.168.1.1",
+      "REMOTE_ADDR" => "127.0.0.1",
+    }
+    r = req.get("http://example.com/", @req.merge(env))
+    assert_equal 200, r.status.to_i
+    assert_equal "2600:3c01::f03c:91ff:fe96:f5d6", @env["REMOTE_ADDR"]
+    assert ! @env.key?("HTTP_X_FORWARDED_FOR")
+    assert_equal "2600:3c01::f03c:91ff:fe96:f5d6,192.168.1.1", @env["unxf.for"]
+  end
+
   def test_multiple_proxies
     req = Rack::MockRequest.new(UnXF.new(@app))
     env = {
