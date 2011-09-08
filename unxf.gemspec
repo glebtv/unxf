@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.test_files = test_files
   s.add_dependency('rack', '~> 1.1')
   s.add_development_dependency('wrongdoc', '~> 1.5')
-  s.add_dependency('rpatricia', '~> 0.07')
+  s.add_dependency('rpatricia', '~> 0.08')
 
   # s.license = %w(GPL) # disabled for compatibility with older RubyGems
 end
