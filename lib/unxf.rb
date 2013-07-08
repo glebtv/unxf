@@ -1,5 +1,6 @@
 # -*- encoding: binary -*-
 require 'rpatricia'
+require "unxf/railtie" if defined? Rails
 
 # Rack middleware to remove "HTTP_X_FORWARDED_FOR" in the Rack environment and
 # replace "REMOTE_ADDR" with the value of the original client address.
