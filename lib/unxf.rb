@@ -60,31 +60,7 @@ class UnXF
   # This allows existing applications to use UnXF without putting it
   # into the middleware stack (to avoid increasing stack depth and GC time)
   def unxf!(env)
-    if xff_str = env.delete(HTTP_X_FORWARDED_FOR)
-      env[UNXF_FOR] = xff_str
-      xff = xff_str.split(/\s*,\s*/)
-      addr = env[REMOTE_ADDR]
-      begin
-        while (/:/ =~ addr ? @trusted6 : @trusted).include?(addr) &&
-              tmp = xff.pop
-          addr = tmp
-        end
-      rescue ArgumentError
-        return on_broken_addr(env, xff_str)
-      end
-
-      # it's stupid to have https at any point other than the first
-      # proxy in the chain, so we don't support that
-      if xff.empty?
-        env[REMOTE_ADDR] = addr
-        if xfp = env.delete(HTTP_X_FORWARDED_PROTO)
-          env[UNXF_PROTO] = xfp
-          /\Ahttps\b/ =~ xfp and env[RACK_URL_SCHEME] = HTTPS
-        end
-      else
-        return on_untrusted_addr(env, xff_str)
-      end
-    elsif xff_str = env.delete(HTTP_X_REAL_IP)
+    if xff_str = (env.delete(HTTP_X_FORWARDED_FOR) || env.delete(HTTP_X_REAL_IP))
       env[UNXF_FOR] = xff_str
       xff = xff_str.split(/\s*,\s*/)
       addr = env[REMOTE_ADDR]
